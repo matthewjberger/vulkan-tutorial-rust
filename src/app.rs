@@ -3,6 +3,7 @@ use ash::{
     version::{EntryV1_0, InstanceV1_0},
     vk, vk_make_version,
 };
+use core::ffi::c_void;
 use std::ffi::CString;
 use winit::{ControlFlow, Event, EventsLoop, VirtualKeyCode, WindowEvent};
 
@@ -16,7 +17,10 @@ const ENGINE_VERSION: u32 = vk_make_version!(1, 0, 0);
 pub struct VulkanApp {
     pub events_loop: EventsLoop,
     pub _window: winit::Window,
+    pub _entry: ash::Entry,
     pub instance: ash::Instance,
+    pub debug_report_loader: ash::extensions::DebugUtils,
+    pub debug_callback: vk::DebugUtilsMessengerEXT,
 }
 
 impl VulkanApp {
@@ -24,12 +28,17 @@ impl VulkanApp {
         let events_loop = EventsLoop::new();
         let window = VulkanApp::init_window(&events_loop);
 
+        let entry = ash::Entry::new().unwrap();
         let instance = VulkanApp::create_instance();
+        let (debug_report_loader, debug_callback) =
+            VulkanApp::setup_debug_callback(&entry, &instance);
 
         VulkanApp {
             events_loop,
             _window: window,
             instance,
+            debug_report_loader,
+            debug_callback,
         }
     }
 
@@ -93,6 +102,9 @@ impl VulkanApp {
 impl Drop for VulkanApp {
     fn drop(&mut self) {
         unsafe {
+            self.debug_report_loader
+                .destroy_debug_utils_messenger_ext(self.debug_callback, None);
+
             self.instance.destroy_instance(None);
         }
     }
