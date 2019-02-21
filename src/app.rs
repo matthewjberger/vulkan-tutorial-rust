@@ -3,10 +3,10 @@ use ash::{
     version::{EntryV1_0, InstanceV1_0},
     vk, vk_make_version,
 };
-use std::{ffi::CString, ptr};
+use std::ffi::CString;
 use winit::{ControlFlow, Event, EventsLoop, VirtualKeyCode, WindowEvent};
 
-const WINDOW_TITLE: &'static str = "Vulkan Tutorial";
+const WINDOW_TITLE: &str = "Vulkan Tutorial";
 const WINDOW_WIDTH: u32 = 800;
 const WINDOW_HEIGHT: u32 = 600;
 const APPLICATION_VERSION: u32 = vk_make_version!(1, 0, 0);
@@ -64,28 +64,21 @@ impl VulkanApp {
         let app_name = CString::new(WINDOW_TITLE).unwrap();
         let engine_name = CString::new("Vulkan Engine").unwrap();
 
-        let app_info = vk::ApplicationInfo {
-            s_type: vk::StructureType::APPLICATION_INFO,
-            p_next: ptr::null(),
-            p_application_name: app_name.as_ptr(),
-            p_engine_name: engine_name.as_ptr(),
-            engine_version: ENGINE_VERSION,
-            api_version: API_VERSION,
-            application_version: APPLICATION_VERSION,
-        };
+        let app_info = vk::ApplicationInfo::builder()
+            .application_name(&app_name)
+            .engine_name(&engine_name)
+            .api_version(API_VERSION)
+            .application_version(APPLICATION_VERSION)
+            .engine_version(ENGINE_VERSION)
+            .build();
 
         let extension_names = required_extension_names();
 
-        let create_info = vk::InstanceCreateInfo {
-            s_type: vk::StructureType::INSTANCE_CREATE_INFO,
-            p_next: ptr::null(),
-            flags: vk::InstanceCreateFlags::empty(),
-            p_application_info: &app_info,
-            pp_enabled_layer_names: ptr::null(),
-            enabled_layer_count: 0,
-            pp_enabled_extension_names: extension_names.as_ptr(),
-            enabled_extension_count: extension_names.len() as u32,
-        };
+        let create_info = vk::InstanceCreateInfo::builder()
+            .application_info(&app_info)
+            .flags(vk::InstanceCreateFlags::empty())
+            .enabled_extension_names(&extension_names)
+            .build();
 
         let instance: ash::Instance = unsafe {
             entry

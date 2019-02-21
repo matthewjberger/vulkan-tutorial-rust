@@ -1,10 +1,4 @@
-use ash::{
-    extensions::{DebugReport, Surface},
-    version::{EntryV1_0, InstanceV1_0},
-    vk,
-};
-
-use std::os::raw::c_void;
+use ash::extensions::{DebugReport, Surface};
 
 #[cfg(target_os = "windows")]
 use ash::extensions::Win32Surface;
